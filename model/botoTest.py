@@ -1,6 +1,5 @@
 import boto3  # pip install boto3
 
-
 # Print out bucket names
 def listBuckets(bucketName):
     s3 = boto3.resource("s3")   
@@ -11,7 +10,7 @@ def listBuckets(bucketName):
     return False
 
 def uploadFile(bucketName):
-    s3 = boto3.client("s3")   
+    s3 = boto3.client("s3")      
     if listBuckets(bucketName):
         s3.upload_file(
             Filename="hola.txt",
@@ -20,5 +19,5 @@ def uploadFile(bucketName):
         )
 
 if __name__ == '__main__':
-    bucketName = 'test98134uihnd'
+    bucketName = 'testbioiajsdi'
     uploadFile(bucketName)

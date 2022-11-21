@@ -1,3 +1,4 @@
+import boto3
 from copy import deepcopy
 import torch
 import torch.nn as nn
@@ -14,7 +15,7 @@ import os
 
 DATA_PATH = './dataset'
 BATCH_SIZE = 16
-EPOCHS = 15
+EPOCHS = 1
 
 class ImageClassifier(ResNet):
     def __init__(self):
@@ -192,6 +193,23 @@ def defineModelArchitecture():
     mod.load_state_dict(torch.load("./model/foodnet_resnet18.pth"))
     mod.eval()
 
+def listBuckets(bucketName):
+    s3 = boto3.resource("s3")   
+    for bucket in s3.buckets.all():
+        if bucket.name == bucketName:
+            print(bucket.name)
+            return True
+    return False
+
+def uploadFile(bucketName):
+    s3 = boto3.client("s3")   
+    if listBuckets(bucketName):
+        s3.upload_file(
+            Filename="./model/foodnet_resnet18.pth",
+            Bucket=bucketName,
+            Key="foodnet_resnet18.pth",
+        )
+
 if __name__ == '__main__':
     train_data_path = os.path.join(DATA_PATH, 'train')
     test_data_path = os.path.join(DATA_PATH, 'test')
@@ -211,3 +229,5 @@ if __name__ == '__main__':
     criterion, optimizer, scheduler = setOpimizer(model)
     trainModel(model, train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset)
     defineModelArchitecture()
+    bucketName = 'test98134uihnd'
+    uploadFile(bucketName)

@@ -19,10 +19,12 @@ def uploadFile(bucketName, fileName):
     s3 = boto3.client("s3")      
     if listBuckets(bucketName):
         s3.upload_file(
-            Filename=fileName,
+            Filename=f"/models/{fileName}",
             Bucket=bucketName,
             Key=fileName,
         )
+        return True
+    return False
 
 @app.route('/', methods=['GET'])
 def home():
@@ -32,10 +34,11 @@ def home():
 def saveMarToS3():
   try:
     req = request.get_json()
-    if alert['completed']:
-      return jsonify(alert['msn']), 200
+    fileUploaded = uploadFile(req['bucketName'], req['modelName'])
+    if fileUploaded:
+      return jsonify("Completed"), 200
     else:
-      return jsonify(alert['msn']), 400
+      return jsonify("Failed"), 400
   except Exception as e:
     return str(e), 400
 

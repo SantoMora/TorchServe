@@ -1,4 +1,4 @@
-import boto3
+#import boto3
 from copy import deepcopy
 import torch
 import torch.nn as nn
@@ -184,16 +184,16 @@ def trainModel(model, train_loader, val_loader, test_loader, train_dataset, val_
                 best_acc = epoch_acc
                 best_model_weights = deepcopy(model.state_dict())
             print(f"Loss ({phase}): {epoch_loss}, Acc ({phase}): {epoch_acc}")
-    torch.save(best_model_weights, './model/foodnet_resnet18.pth')
+    torch.save(best_model_weights, './modelTrained/foodnet_resnet18.pth')
     print(f"Test Loss: {epoch_loss}, Test Accuracy: {epoch_acc}")
     model.eval()
 
 def defineModelArchitecture(): 
     mod = ImageClassifier()
-    mod.load_state_dict(torch.load("./model/foodnet_resnet18.pth"))
+    mod.load_state_dict(torch.load("./modelTrained/foodnet_resnet18.pth"))
     mod.eval()
 
-def listBuckets(bucketName):
+'''def listBuckets(bucketName):
     s3 = boto3.resource("s3")   
     for bucket in s3.buckets.all():
         if bucket.name == bucketName:
@@ -205,19 +205,25 @@ def uploadFile(bucketName):
     s3 = boto3.client("s3")   
     if listBuckets(bucketName):
         s3.upload_file(
-            Filename="./model/foodnet_resnet18.pth",
+            Filename="./modelTrained/foodnet_resnet18.pth",
             Bucket=bucketName,
             Key="foodnet_resnet18.pth",
         )
+'''
 
 if __name__ == '__main__':
     train_data_path = os.path.join(DATA_PATH, 'train')
     test_data_path = os.path.join(DATA_PATH, 'test')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print('Set Classes...')
     train_classes, test_classes = setClasses(train_data_path, test_data_path)
+    print('Set Transforms...')
     train_transform, val_transform, test_transform = setTransformations()
+    print('Set datasets...')
     train_dataset, val_dataset, test_dataset = setDatasets(train_data_path, test_data_path, train_transform, val_transform)
+    print('Set Sampler...')
     train_sampler, val_sampler = defDatasetSplit(train_dataset)
+    print('Set Loaders...')
     train_loader, val_loader, test_loader = setDataLoaders(train_dataset, train_sampler, val_dataset, val_sampler, test_dataset)
 
     model = models.resnet18(pretrained=True)
@@ -227,7 +233,9 @@ if __name__ == '__main__':
     sequential_layers = setSequentialLayer(model)
     model.fc = sequential_layers
     criterion, optimizer, scheduler = setOpimizer(model)
+    print('Train Model...')
     trainModel(model, train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset)
+    print('Define Model Architecture...')
     defineModelArchitecture()
-    bucketName = os.environ.get('BUCKET_NAME')
-    uploadFile(bucketName)
+    #bucketName = os.environ.get('BUCKET_NAME')
+    #uploadFile(bucketName)

@@ -19,5 +19,5 @@ def uploadFile(bucketName):
         )
 
 if __name__ == '__main__':
-    bucketName = 'testbioiajsdi'
+    bucketName = 'testbucket0943nfds'
     uploadFile(bucketName)

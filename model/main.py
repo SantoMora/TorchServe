@@ -196,13 +196,14 @@ def defineModelArchitecture():
 
 def createMarFile():
     os.system(f"torch-model-archiver \
-        --model-name foodnet_resnet18 \
+        --model-name {os.environ['MODEL_NAME']} \
         --version 1.0 \
         --model-file model.py \
         --serialized-file ./modelTrained/{os.environ['MODEL_NAME']}/{os.environ['MODEL_NAME']}.pth \
         --handler handler.py \
         --extra-files ./modelTrained/{os.environ['MODEL_NAME']}/index_to_name.json"
     )
+    print(os.system('ls'))
     os.system(f"mv {os.environ['MODEL_NAME']}.mar ./modelTrained/{os.environ['MODEL_NAME']}/")
 
 def pushModelToS3():

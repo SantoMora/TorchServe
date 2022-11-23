@@ -10,9 +10,8 @@ ENV MODEL_NAME=$model_name
 RUN mkdir dataset
 RUN mkdir model
 
-ADD dataset dataset
-COPY index_to_name.json model/
-COPY testApi.py .
-COPY main.py .
+ADD model/dataset dataset
+COPY model/index_to_name.json model/
+COPY model/main.py .
 
 CMD ["mkdir -p modelTrained/$MODEL_NAME", "&&", "mv model/index_to_name.json modelTrained$model_name/", "&&", "python", " main.py"]

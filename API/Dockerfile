@@ -11,9 +11,9 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN unzip awscliv2.zip 
 RUN ./aws/install
 
-COPY credentials.csv .
-COPY api.py .
-COPY requirements.txt .
+COPY API/credentials.csv .
+COPY API/api.py .
+COPY API/requirements.txt .
 RUN pip3 install -r requirements.txt
 RUN aws configure import --csv file://credentials.csv
 

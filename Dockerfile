@@ -1,19 +1,21 @@
 FROM pytorch/torchserve:0.3.0-cpu
 
+ARG model_name
+ARG bucket_name
+
+ENV BUCKET_NAME=$bucket_name
+ENV MODEL_NAME=$model_name
 
 COPY ./model model/
 COPY ./deployment deployment/
+COPY pullMar.py .
 
-RUN torch-model-archiver --model-name foodnet_resnet18 \
-    --version 1.0 \
-    --model-file model/model.py \
-    --serialized-file model/foodnet_resnet18.pth \
-    --handler model/handler.py \
-    --extra-files model/index_to_name.json
+RUN mkdir model-store
 
-CMD ["torchserve", \
+CMD ["python", "pullMar.py", "&&" \
+    "torchserve", \
      "--start", \
      "--ncs", \
      "--ts-config deployment/config.properties", \
-     "--model-store deployment/model-store", \
-     "--models foodnet=foodnet_resnet18.mar"]
+     "--model-store model-store", \
+     "--models foodnet=$MODEL_NAME.mar"]

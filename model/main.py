@@ -194,6 +194,17 @@ def defineModelArchitecture():
     mod.load_state_dict(torch.load(f"./modelTrained/{os.environ['MODEL_NAME']}/{os.environ['MODEL_NAME']}.pth"))
     mod.eval()
 
+def createMarFile():
+    os.system(f"torch-model-archiver \
+        --model-name foodnet_resnet18 \
+        --version 1.0 \
+        --model-file model.py \
+        --serialized-file ./modelTrained/{os.environ['MODEL_NAME']}/{os.environ['MODEL_NAME']}.pth \
+        --handler handler.py \
+        --extra-files ./modelTrained/{os.environ['MODEL_NAME']}/index_to_name.json"
+    )
+    os.system(f"mv {os.environ['MODEL_NAME']}.mar ./modelTrained/{os.environ['MODEL_NAME']}/")
+
 def pushModelToS3():
     print(f"Sending PTH model to {os.environ['BUCKET_NAME']} S3 Bucket...")
     url = 'http://172.17.0.2:5000/save/mar'
@@ -202,7 +213,7 @@ def pushModelToS3():
     }
     data = {
         "bucketName": os.environ['BUCKET_NAME'],
-        "modelName": f"{os.environ['MODEL_NAME']}/{os.environ['MODEL_NAME']}.pth"
+        "modelName": f"{os.environ['MODEL_NAME']}/{os.environ['MODEL_NAME']}.mar"
     }
     print(data)
     res = requests.post(url, headers=headers, json=data)
@@ -234,4 +245,5 @@ if __name__ == '__main__':
     trainModel(model, train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset)
     print('Define Model Architecture...')
     defineModelArchitecture()
+    createMarFile()
     pushModelToS3()

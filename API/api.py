@@ -19,7 +19,7 @@ def uploadFile(bucketName, fileName):
     s3 = boto3.client("s3")      
     if listBuckets(bucketName):
         s3.upload_file(
-            Filename=f"/models/{fileName}",
+            Filename=f"/modelTrained/{fileName}",
             Bucket=bucketName,
             Key=fileName,
         )

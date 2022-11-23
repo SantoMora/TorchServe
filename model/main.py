@@ -10,6 +10,7 @@ from torchvision import transforms as T
 from torchvision.datasets import ImageFolder
 from torchvision.models.resnet import ResNet, BasicBlock
 import numpy as np
+import requests
 import json
 import os
 
@@ -37,7 +38,7 @@ def setClasses(train_data_path, test_data_path):
         if os.path.isdir(os.path.join(train_data_path, path)):
             train_classes.setdefault(len(train_classes), path)
 
-    with open('./model/index_to_name.json', 'w') as fp:
+    with open(f"./modelTrained/{os.environ['MODEL_NAME']}/index_to_name.json", 'w') as fp:
         json.dump(train_classes, fp)
 
     for path in sorted(os.listdir(test_data_path)):
@@ -184,32 +185,28 @@ def trainModel(model, train_loader, val_loader, test_loader, train_dataset, val_
                 best_acc = epoch_acc
                 best_model_weights = deepcopy(model.state_dict())
             print(f"Loss ({phase}): {epoch_loss}, Acc ({phase}): {epoch_acc}")
-    torch.save(best_model_weights, './modelTrained/foodnet_resnet18.pth')
+    torch.save(best_model_weights, f"./modelTrained/{os.environ['MODEL_NAME']}/{os.environ['MODEL_NAME']}.pth")
     print(f"Test Loss: {epoch_loss}, Test Accuracy: {epoch_acc}")
     model.eval()
 
 def defineModelArchitecture(): 
     mod = ImageClassifier()
-    mod.load_state_dict(torch.load("./modelTrained/foodnet_resnet18.pth"))
+    mod.load_state_dict(torch.load(f"./modelTrained/{os.environ['MODEL_NAME']}/{os.environ['MODEL_NAME']}.pth"))
     mod.eval()
 
-'''def listBuckets(bucketName):
-    s3 = boto3.resource("s3")   
-    for bucket in s3.buckets.all():
-        if bucket.name == bucketName:
-            print(bucket.name)
-            return True
-    return False
-
-def uploadFile(bucketName):
-    s3 = boto3.client("s3")   
-    if listBuckets(bucketName):
-        s3.upload_file(
-            Filename="./modelTrained/foodnet_resnet18.pth",
-            Bucket=bucketName,
-            Key="foodnet_resnet18.pth",
-        )
-'''
+def pushModelToS3():
+    print(f"Sending PTH model to {os.environ['BUCKET_NAME']} S3 Bucket...")
+    url = 'http://172.17.0.2:5000/save/mar'
+    headers = {
+        "Content-type": "application/json"
+    }
+    data = {
+        "bucketName": os.environ['BUCKET_NAME'],
+        "modelName": f"{os.environ['MODEL_NAME']}/{os.environ['MODEL_NAME']}.pth"
+    }
+    print(data)
+    res = requests.post(url, headers=headers, json=data)
+    print(f"Response: {res.text}")
 
 if __name__ == '__main__':
     train_data_path = os.path.join(DATA_PATH, 'train')
@@ -237,5 +234,4 @@ if __name__ == '__main__':
     trainModel(model, train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset)
     print('Define Model Architecture...')
     defineModelArchitecture()
-    #bucketName = os.environ.get('BUCKET_NAME')
-    #uploadFile(bucketName)
+    pushModelToS3()

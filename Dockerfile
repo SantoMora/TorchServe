@@ -10,9 +10,9 @@ COPY ./model model/
 COPY ./deployment deployment/
 COPY pullMar.py .
 
-RUN mkdir model-store
+RUN ls
 
-CMD ["python", "pullMar.py", "&&" \
+CMD ["python", "pullMar.py", "&&", \
     "torchserve", \
      "--start", \
      "--ncs", \

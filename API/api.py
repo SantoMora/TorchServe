@@ -44,7 +44,7 @@ def home():
 def saveMarToS3():
   try:
     req = request.get_json()
-    fileDownloaded = uploadFile(req['bucketName'], req['modelName'])
+    fileUploaded = uploadFile(req['bucketName'], req['modelName'])
     if fileUploaded:
       return jsonify("Completed"), 200
     else:
